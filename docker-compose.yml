@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  web:
+    build: ./app
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./app/:/usr/src/app/
+    ports:
+      - 8000:8000
+    env_file:
+      - ./app/.env.dev
+    depends_on:
+      - db
+  django:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    environment:
+      DJANGO_SUPERUSER_PASSWORD: "110011"
+      DJANGO_SUPERUSER_EMAIL: "admin@example.com"
+      DJANGO_SUPERUSER_USERNAME: "admin"
+      DB_ENGINE: "django.db.backends.postgresql"
+      DB_NAME: "hello_django"
+      POSTGRES_USER: "hello_django"
+      POSTGRES_PASSWORD: "hello_django"
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+  db:
+    image: postgres:13.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_USER: 'hello_django'
+      POSTGRES_PASSWORD: 'hello_django'
+      POSTGRES_DB: 'hello_django_dev'
+  nginx:
+    build: ./nginx
+    ports:
+      - 1337:80
+    depends_on:
+      - web
+volumes:
+  postgres_data:
